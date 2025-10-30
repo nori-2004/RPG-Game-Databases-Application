@@ -13,4 +13,4 @@ The database supports:
 - Tracking completed objectives and achievements  
 - Managing in-game locations, items, and characters  
 
-This model can power modern RPGs while integrating with live services (e.g., PlayStation accounts) to sync user achievements and progress.
+This model can power modern RPGs while integrating with live services (for e.g., PlayStation accounts) to sync user achievements and progress.
