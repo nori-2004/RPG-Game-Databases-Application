@@ -1,4 +1,4 @@
-# team_30 RPG Game Relational Database Test
+# team_30 RPG Game Relational Database
 
 ## Project Summary
 
