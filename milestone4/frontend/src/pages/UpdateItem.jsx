@@ -1,4 +1,3 @@
-// src/pages/UpdateItem.jsx
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "../Components/LoadingSpinner";
 import { api } from "../services/api";
@@ -25,7 +24,6 @@ export default function UpdateItem() {
         const res = await api.getItems();
         if (res.success && res.data && res.data.length > 0) {
           setItems(res.data);
-          // default selection: first item
           const first = res.data[0];
           setSelectedName(first.item_name);
           setRarity(first.item_rarity || ITEM_RARITIES[0]);
@@ -69,7 +67,6 @@ export default function UpdateItem() {
 
       const res = await api.updateItem(selectedName, payload);
       if (res.success) {
-        // update local list so table reflects new values
         setItems((prev) =>
           prev.map((i) =>
             i.item_name === selectedName

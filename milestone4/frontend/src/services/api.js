@@ -21,6 +21,26 @@ const mockData = {
       { item_name: "Silver Shield", item_rarity: "Rare", item_type: "Armor" },
       { item_name: "Healing Potion", item_rarity: "Common", item_type: "Armor" },
     ],
+    activeUsers: [
+        {
+          username: "alice",
+          first_name: "Alice",
+          email: "alice@example.com",
+          savefile_count: 5,
+        },
+        {
+          username: "bob",
+          first_name: "Bob",
+          email: "bob@example.com",
+          savefile_count: 2,
+        },
+        {
+          username: "charlie",
+          first_name: "Charlie",
+          email: "charlie@example.com",
+          savefile_count: 0,
+        },
+      ],
   };
 
 export const api = {
@@ -114,4 +134,22 @@ export const api = {
     );
     return res.json();
   },
+  
+  async getActiveUsers(options = {}) {
+    const minSavefiles = Number(options.minSavefiles ?? 1);
+  
+    if (USE_MOCK) {
+      const filtered = mockData.activeUsers.filter(
+        (u) => u.savefile_count >= minSavefiles
+      );
+      return { success: true, data: filtered };
+    }
+  
+    const params = new URLSearchParams();
+    params.set("min_savefiles", String(minSavefiles));
+  
+    const res = await fetch(`${API_BASE}/users/active?${params.toString()}`);
+    return res.json(); 
+  },
+  
 };

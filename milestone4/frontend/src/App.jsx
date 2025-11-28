@@ -5,6 +5,8 @@ import Notification from "./Components/Notification";
 import AddUser from "./pages/AddUser";
 import DeleteUser from "./pages/DeleteUser";
 import UpdateItem from "./pages/UpdateItem";
+import UserReport from "./pages/UserReport";
+import ActiveUsers from "./pages/ActiveUsers";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("AddUser");
@@ -22,6 +24,12 @@ function App() {
       break;
     case "Update Item":
       pageComponent = <UpdateItem />;
+      break;
+    case "User Report":
+      pageComponent = <UserReport />;
+      break;
+    case "Active Users":
+      pageComponent = <ActiveUsers />;
       break;
     case "Add User":
     default:
