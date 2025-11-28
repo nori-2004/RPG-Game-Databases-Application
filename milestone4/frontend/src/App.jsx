@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import Layout from "./Components/Layout";
 import Notification from "./Components/Notification";
+
 import AddUser from "./pages/AddUser";
+import DeleteUser from "./pages/DeleteUser";
+import UpdateItem from "./pages/UpdateItem";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("AddUser");
@@ -12,7 +15,19 @@ function App() {
     setNotification({ type: "", message: "" });
   }
 
-  let pageComponent = <AddUser />;
+  let pageComponent;
+  switch (currentPage) {
+    case "Delete User":
+      pageComponent = <DeleteUser />;
+      break;
+    case "Update Item":
+      pageComponent = <UpdateItem />;
+      break;
+    case "Add User":
+    default:
+      pageComponent = <AddUser />;
+  }
+
 
   return (
     <Layout currentPage={currentPage} onNavigate={handleNavigate}>
