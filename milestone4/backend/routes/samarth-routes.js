@@ -149,6 +149,91 @@ router.put('/items/:item_name', async (req, res) => {
     }
 });
 
+// JOIN - Achievement details with objectives
+router.get('/achievements/details', async (req, res) => {
+    const username = trimInput(req.query.username);
+    const binds = {};
+
+    let query = `
+        SELECT TRIM(am.achievement_name) AS ACHIEVEMENT_NAME,
+               am.description AS ACHIEVEMENT_DESCRIPTION,
+               TRIM(u.username) AS USERNAME,
+               TRIM(u.first_name) AS FIRST_NAME,
+               TRIM(am.obj_name) AS OBJ_NAME,
+               o.description AS OBJ_DESCRIPTION,
+               TRIM(o.location_name) AS LOCATION_NAME,
+               TRIM(o.item_name) AS ITEM_REWARD,
+               TO_CHAR(e.date_earned, 'YYYY-MM-DD') AS DATE_EARNED
+        FROM Achievements_monitors am
+        JOIN Users u ON TRIM(am.username) = TRIM(u.username)
+        JOIN Objectives o ON TRIM(am.obj_name) = TRIM(o.obj_name)
+        LEFT JOIN Earned e ON TRIM(am.achievement_name) = TRIM(e.achievement_name)
+                          AND TRIM(am.username) = TRIM(e.username)
+    `;
+
+    if (username) {
+        query += 'WHERE TRIM(u.username) = :username ';
+        binds.username = username;
+    }
+
+    query += 'ORDER BY TRIM(u.username), TRIM(am.achievement_name)';
+
+    try {
+        const result = await db.query(query, binds);
+        const data = (result.rows || []).map((row) => ({
+            achievement_name: row.ACHIEVEMENT_NAME,
+            achievement_description: row.ACHIEVEMENT_DESCRIPTION,
+            username: row.USERNAME,
+            first_name: row.FIRST_NAME,
+            obj_name: row.OBJ_NAME,
+            obj_description: row.OBJ_DESCRIPTION,
+            location_name: row.LOCATION_NAME,
+            item_reward: row.ITEM_REWARD,
+            date_earned: row.DATE_EARNED
+        }));
+
+        return res.json({ success: true, data, total: data.length });
+    } catch (err) {
+        return handleServerError(res, err, 'Failed to fetch achievement details');
+    }
+});
+
+// HAVING - Active users threshold
+router.get('/users/active', async (req, res) => {
+    const thresholdRaw = trimInput(req.query.min_savefiles);
+    const threshold = Number(thresholdRaw);
+
+    if (Number.isNaN(threshold)) {
+        return res.status(400).json({ success: false, error: 'min_savefiles is required and must be a number' });
+    }
+
+    try {
+        const result = await db.query(
+            `SELECT TRIM(u.username) AS USERNAME,
+                    TRIM(u.first_name) AS FIRST_NAME,
+                    u.email AS EMAIL,
+                    COUNT(sf.created_on) AS SAVEFILE_COUNT
+             FROM Users u
+             LEFT JOIN SaveFiles_IsAt sf ON TRIM(u.username) = TRIM(sf.username)
+             GROUP BY TRIM(u.username), TRIM(u.first_name), u.email
+             HAVING COUNT(sf.created_on) >= :threshold
+             ORDER BY SAVEFILE_COUNT DESC, TRIM(u.username)`,
+            { threshold }
+        );
+
+        const data = (result.rows || []).map((row) => ({
+            username: row.USERNAME,
+            first_name: row.FIRST_NAME,
+            email: row.EMAIL,
+            savefile_count: Number(row.SAVEFILE_COUNT) || 0
+        }));
+
+        return res.json({ success: true, threshold, data, total: data.length });
+    } catch (err) {
+        return handleServerError(res, err, 'Failed to fetch active users');
+    }
+});
+
 // Helper - Locations list
 router.get('/locations', async (_req, res) => {
     try {
