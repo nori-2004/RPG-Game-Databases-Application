@@ -234,6 +234,70 @@ router.get('/users/active', async (req, res) => {
     }
 });
 
+// DIVISION - Completionists by location
+router.get('/users/completionists', async (req, res) => {
+    const locationName = trimInput(req.query.location_name);
+    if (!locationName) {
+        return res.status(400).json({ success: false, error: 'location_name is required' });
+    }
+
+    try {
+        const objectivesResult = await db.query(
+            `SELECT TRIM(obj_name) AS OBJ_NAME
+             FROM Objectives
+             WHERE TRIM(location_name) = :location
+             ORDER BY TRIM(obj_name)`,
+            { location: locationName }
+        );
+
+        const objectivesAtLocation = (objectivesResult.rows || []).map((row) => row.OBJ_NAME);
+
+        if (objectivesAtLocation.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: `No objectives found for location '${locationName}'`
+            });
+        }
+
+        const completionistsResult = await db.query(
+            `SELECT TRIM(c.username) AS USERNAME,
+                    TRIM(u.first_name) AS FIRST_NAME,
+                    COUNT(DISTINCT TRIM(c.obj_name)) AS COMPLETED_COUNT
+             FROM Completes c
+             JOIN Users u ON TRIM(c.username) = TRIM(u.username)
+             JOIN Objectives o ON TRIM(c.obj_name) = TRIM(o.obj_name)
+             WHERE TRIM(o.location_name) = :location
+             GROUP BY TRIM(c.username), TRIM(u.first_name)
+             HAVING COUNT(DISTINCT TRIM(c.obj_name)) = :objectiveCount
+             ORDER BY TRIM(c.username)`,
+            { location: locationName, objectiveCount: objectivesAtLocation.length }
+        );
+
+        const data = (completionistsResult.rows || []).map((row) => ({
+            username: row.USERNAME,
+            first_name: row.FIRST_NAME,
+            completed_count: Number(row.COMPLETED_COUNT) || 0,
+            total_objectives: objectivesAtLocation.length
+        }));
+
+        const responseBody = {
+            success: true,
+            location: locationName,
+            objectives_at_location: objectivesAtLocation,
+            data,
+            total: data.length
+        };
+
+        if (data.length === 0) {
+            responseBody.message = 'No users have completed all objectives at this location';
+        }
+
+        return res.json(responseBody);
+    } catch (err) {
+        return handleServerError(res, err, 'Failed to fetch completionists');
+    }
+});
+
 // Helper - Locations list
 router.get('/locations', async (_req, res) => {
     try {
