@@ -1,6 +1,6 @@
 const oracledb = require('oracledb');
 const path = require('path');
-const loadEnvFile = require('./utils/envUtil');
+const loadEnvFile = require('../utils/envUtil');
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
@@ -16,7 +16,7 @@ function sanitizeEnv(rawEnv = {}) {
     }, {});
 }
 
-const envPath = path.join(__dirname, '.env');
+const envPath = path.join(__dirname, '..', '.env');
 const fileEnv = sanitizeEnv(loadEnvFile(envPath) || {});
 const envVariables = {
     ...fileEnv,
