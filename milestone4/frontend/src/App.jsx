@@ -7,6 +7,8 @@ import DeleteUser from "./pages/DeleteUser";
 import UpdateItem from "./pages/UpdateItem";
 import UserReport from "./pages/UserReport";
 import ActiveUsers from "./pages/ActiveUsers";
+import Completionists from "./pages/Complitionists";
+import ItemStats from "./pages/ItemStats";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("AddUser");
@@ -30,6 +32,12 @@ function App() {
       break;
     case "Active Users":
       pageComponent = <ActiveUsers />;
+      break;
+    case "Completionists": 
+      pageComponent= <Completionists />; 
+      break;
+    case "Item Stats": 
+      pageComponent= <ItemStats /> 
       break;
     case "Add User":
     default:
