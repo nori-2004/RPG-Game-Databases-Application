@@ -9,6 +9,8 @@ import UserReport from "./pages/UserReport";
 import ActiveUsers from "./pages/ActiveUsers";
 import Completionists from "./pages/Complitionists";
 import ItemStats from "./pages/ItemStats";
+import UserAchievements from "./pages/UserAchievements";
+import SavefileAnalysis from "./pages/SaveFileAnalysis";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("AddUser");
@@ -38,6 +40,12 @@ function App() {
       break;
     case "Item Stats": 
       pageComponent= <ItemStats /> 
+      break;
+    case "Achievements": 
+      pageComponent = <UserAchievements /> 
+      break; 
+    case "Save File Analysis": 
+      pageComponent = <SavefileAnalysis /> 
       break;
     case "Add User":
     default:
