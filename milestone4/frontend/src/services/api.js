@@ -359,8 +359,8 @@ export const api = {
     return res.json();
   },
 
-  // TO DO
-  async searchCharacters({ chr_type, location_name, character_kind }) {
+  // Selection query with AND/OR conditions
+  async searchCharacters({ character_kind, conditions }) {
     if (USE_MOCK) {
       return {
         success: true,
@@ -369,14 +369,11 @@ export const api = {
       };
     }
 
-    const params = new URLSearchParams();
-    if (chr_type) params.set("chr_type", chr_type);
-    if (location_name) params.set("location_name", location_name);
-    if (character_kind) params.set("character_kind", character_kind);
-
-    const res = await fetch(
-      `${API_BASE}/characters/search?${params.toString()}`
-    );
+    const res = await fetch(`${API_BASE}/characters/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ character_kind, conditions }),
+    });
     return res.json();
   },
 

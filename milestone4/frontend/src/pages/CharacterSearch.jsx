@@ -2,14 +2,27 @@ import React, { useEffect, useState } from "react";
 import LoadingSpinner from "../Components/LoadingSpinner";
 import { api } from "../services/api";
 
+const ATTRIBUTES = [
+  { value: "chr_name", label: "Character Name" },
+  { value: "chr_type", label: "Character Type" },
+  { value: "bg_story", label: "Background Story" },
+  { value: "location_name", label: "Location (NPCs only)" },
+];
+
+const OPERATORS = [
+  { value: "=", label: "equals" },
+  { value: "LIKE", label: "contains" },
+];
+
 export default function CharacterSearch() {
   const [charTypes, setCharTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
   const [characterKind, setCharacterKind] = useState("all");
+  const [conditions, setConditions] = useState([
+    { attribute: "chr_type", operator: "=", value: "", connector: "AND" },
+  ]);
 
   const [results, setResults] = useState({ npcs: [], pcs: [] });
   const [loading, setLoading] = useState(false);
@@ -41,17 +54,44 @@ export default function CharacterSearch() {
     loadOptions();
   }, []);
 
+  function addCondition() {
+    setConditions([
+      ...conditions,
+      { attribute: "chr_type", operator: "=", value: "", connector: "AND" },
+    ]);
+  }
+
+  function removeCondition(index) {
+    if (conditions.length > 1) {
+      setConditions(conditions.filter((_, i) => i !== index));
+    }
+  }
+
+  function updateCondition(index, field, value) {
+    const updated = [...conditions];
+    updated[index] = { ...updated[index], [field]: value };
+    setConditions(updated);
+  }
+
   async function handleSearch(e) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setResults({ npcs: [], pcs: [] });
 
+    // Filter out empty conditions
+    const validConditions = conditions.filter((c) => c.value.trim() !== "");
+
+    if (validConditions.length === 0) {
+      setMessage("Please add at least one search condition with a value.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.searchCharacters({
-        chr_type: selectedType || undefined,
-        location_name: selectedLocation || undefined,
         character_kind: characterKind,
+        conditions: validConditions,
       });
 
       if (res.success) {
@@ -70,6 +110,54 @@ export default function CharacterSearch() {
     }
   }
 
+  function renderValueInput(condition, index) {
+    const { attribute, value } = condition;
+
+    // For chr_type, show dropdown of available types
+    if (attribute === "chr_type") {
+      return (
+        <select
+          value={value}
+          onChange={(e) => updateCondition(index, "value", e.target.value)}
+        >
+          <option value="">Select type...</option>
+          {charTypes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    // For location_name, show dropdown of available locations
+    if (attribute === "location_name") {
+      return (
+        <select
+          value={value}
+          onChange={(e) => updateCondition(index, "value", e.target.value)}
+        >
+          <option value="">Select location...</option>
+          {locations.map((loc) => (
+            <option key={loc.location_name} value={loc.location_name}>
+              {loc.location_name}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    // For other attributes, show text input
+    return (
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => updateCondition(index, "value", e.target.value)}
+        placeholder="Enter value..."
+      />
+    );
+  }
+
   const totalResults = (results.npcs?.length || 0) + (results.pcs?.length || 0);
 
   return (
@@ -78,52 +166,11 @@ export default function CharacterSearch() {
 
       <div className="card">
         <p className="page-subtitle">
-          Search for NPCs and PCs by character type and/or location.
+          Search for NPCs and PCs using multiple conditions with AND/OR logic.
         </p>
 
         <form onSubmit={handleSearch} className="form">
-          <div className="form-row">
-            <label>
-              Character Type
-              {loadingOptions ? (
-                <div>Loading...</div>
-              ) : (
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                >
-                  <option value="">All Types</option>
-                  {charTypes.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </label>
-          </div>
-
-          <div className="form-row">
-            <label>
-              Location (NPCs only)
-              {loadingOptions ? (
-                <div>Loading...</div>
-              ) : (
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                >
-                  <option value="">All Locations</option>
-                  {locations.map((loc) => (
-                    <option key={loc.location_name} value={loc.location_name}>
-                      {loc.location_name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </label>
-          </div>
-
+          {/* Character Kind selector */}
           <div className="form-row">
             <label>
               Character Kind
@@ -136,6 +183,101 @@ export default function CharacterSearch() {
                 <option value="PC">PCs Only</option>
               </select>
             </label>
+          </div>
+
+          <hr style={{ margin: "1rem 0", borderColor: "#ddd" }} />
+
+          <h3 style={{ marginBottom: "0.5rem" }}>Search Conditions</h3>
+
+          {/* Dynamic conditions */}
+          {conditions.map((condition, index) => (
+            <div
+              key={index}
+              className="condition-row"
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                alignItems: "center",
+                marginBottom: "0.5rem",
+                flexWrap: "wrap",
+              }}
+            >
+              {/* AND/OR connector (not shown for first condition) */}
+              {index > 0 && (
+                <select
+                  value={condition.connector}
+                  onChange={(e) =>
+                    updateCondition(index, "connector", e.target.value)
+                  }
+                  style={{ width: "80px" }}
+                >
+                  <option value="AND">AND</option>
+                  <option value="OR">OR</option>
+                </select>
+              )}
+
+              {/* Attribute selector */}
+              <select
+                value={condition.attribute}
+                onChange={(e) =>
+                  updateCondition(index, "attribute", e.target.value)
+                }
+                style={{ minWidth: "150px" }}
+              >
+                {ATTRIBUTES.map((attr) => (
+                  <option key={attr.value} value={attr.value}>
+                    {attr.label}
+                  </option>
+                ))}
+              </select>
+
+              {/* Operator selector */}
+              <select
+                value={condition.operator}
+                onChange={(e) =>
+                  updateCondition(index, "operator", e.target.value)
+                }
+                style={{ width: "100px" }}
+              >
+                {OPERATORS.map((op) => (
+                  <option key={op.value} value={op.value}>
+                    {op.label}
+                  </option>
+                ))}
+              </select>
+
+              {/* Value input */}
+              <div style={{ minWidth: "150px" }}>
+                {loadingOptions ? (
+                  <span>Loading...</span>
+                ) : (
+                  renderValueInput(condition, index)
+                )}
+              </div>
+
+              {/* Remove button */}
+              {conditions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeCondition(index)}
+                  className="small-button-secondary"
+                  style={{ padding: "0.25rem 0.5rem" }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+
+          {/* Add condition button */}
+          <div style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>
+            <button
+              type="button"
+              onClick={addCondition}
+              className="small-button-secondary"
+            >
+              + Add Condition
+            </button>
           </div>
 
           <div className="form-row">
