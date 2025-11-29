@@ -1,7 +1,13 @@
 const express = require('express');
 const appService = require('./appService');
+const ketanRoutes = require('./backend/routes/ketan-routes');
+const samarthRoutes = require('./backend/routes/samarth-routes');
 
 const router = express.Router();
+
+// Mount route modules
+router.use('/api', ketanRoutes);
+router.use('/api', samarthRoutes);
 
 // ----------------------------------------------------------
 // API endpoints
