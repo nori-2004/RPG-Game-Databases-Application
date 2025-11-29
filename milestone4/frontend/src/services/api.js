@@ -1,4 +1,4 @@
-const USE_MOCK = true;
+const USE_MOCK = false;
 const API_BASE = "http://localhost:65535/api"; // change port later to match server.js
 
 const mockData = {
@@ -157,7 +157,6 @@ export const api = {
     return res.json();
   },
 
-
   async createSaveFile(data) {
     if (USE_MOCK) {
       return {
@@ -189,12 +188,9 @@ export const api = {
     return res.json();
   },
 
-
   async deleteUser(username) {
     if (USE_MOCK) {
-      const index = mockData.users.findIndex(
-        (u) => u.username === username
-      );
+      const index = mockData.users.findIndex((u) => u.username === username);
       if (index !== -1) {
         mockData.users.splice(index, 1);
         return {
@@ -252,7 +248,6 @@ export const api = {
     return res.json();
   },
 
-
   async getActiveUsers(options = {}) {
     const minSavefiles = Number(options.minSavefiles ?? 1);
 
@@ -270,7 +265,6 @@ export const api = {
     return res.json();
   },
 
-
   async getLocations() {
     if (USE_MOCK) {
       return { success: true, data: mockData.locations || [] };
@@ -278,7 +272,6 @@ export const api = {
     const res = await fetch(`${API_BASE}/locations`);
     return res.json();
   },
-
 
   async getCompletionists(locationName) {
     if (USE_MOCK) {
@@ -290,7 +283,12 @@ export const api = {
         completed_count: u.completed_objectives,
         total_objectives: u.completed_objectives,
       }));
-      return { success: true, location: locationName, data, total: data.length };
+      return {
+        success: true,
+        location: locationName,
+        data,
+        total: data.length,
+      };
     }
 
     const params = new URLSearchParams();
@@ -302,7 +300,6 @@ export const api = {
     return res.json();
   },
 
-
   async getItemStats() {
     if (USE_MOCK) {
       return { success: true, data: mockData.itemStats };
@@ -312,7 +309,6 @@ export const api = {
     return res.json();
   },
 
-
   async getSavefileAnalysis() {
     if (USE_MOCK) {
       return { success: true, data: mockData.savefileAnalysis };
@@ -321,7 +317,6 @@ export const api = {
     const res = await fetch(`${API_BASE}/savefiles/analysis`);
     return res.json();
   },
-
 
   async getUserAchievements(username) {
     if (USE_MOCK) {
@@ -340,7 +335,11 @@ export const api = {
 
   async getCharacterTypes() {
     if (USE_MOCK) {
-      return { success: true, data: mockData.charTypes, total: mockData.charTypes.length };
+      return {
+        success: true,
+        data: mockData.charTypes,
+        total: mockData.charTypes.length,
+      };
     }
 
     const res = await fetch(`${API_BASE}/chartypes`);
@@ -380,7 +379,6 @@ export const api = {
     );
     return res.json();
   },
-
 
   async getUserReport(fieldsArray) {
     if (USE_MOCK) {
