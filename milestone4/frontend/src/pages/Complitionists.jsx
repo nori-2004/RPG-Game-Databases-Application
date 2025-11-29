@@ -123,7 +123,7 @@ export default function Completionists() {
                   <tr key={p.username}>
                     <td>{p.username}</td>
                     <td>{p.first_name}</td>
-                    <td>{p.completed_objectives}</td>
+                    <td>{p.completed_count}</td>
                   </tr>
                 ))}
               </tbody>

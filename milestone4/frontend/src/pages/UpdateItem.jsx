@@ -3,7 +3,7 @@ import LoadingSpinner from "../Components/LoadingSpinner";
 import { api } from "../services/api";
 
 const ITEM_RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
-const ITEM_TYPES = ["Armour", "Weapon"];
+const ITEM_TYPES = ["Armor", "Weapon"];
 
 export default function UpdateItem() {
   const [items, setItems] = useState([]);
@@ -74,7 +74,9 @@ export default function UpdateItem() {
               : i
           )
         );
-        setMessage(res.message || `Item '${selectedName}' updated successfully`);
+        setMessage(
+          res.message || `Item '${selectedName}' updated successfully`
+        );
       } else {
         setMessage(res.message || `Failed to update '${selectedName}'`);
       }
@@ -90,17 +92,18 @@ export default function UpdateItem() {
       <h1 className="page-title">Update Item</h1>
 
       <div className="card">
-        <p style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "0.9rem" }}>
-          Click an item in the table, then update its rarity/type using the form below.
+        <p
+          style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "0.9rem" }}
+        >
+          Click an item in the table, then update its rarity/type using the form
+          below.
         </p>
 
         {loading && <LoadingSpinner />}
 
         {message && <p className="form-message">{message}</p>}
 
-        {!loading && items.length === 0 && (
-          <p>No items available to update.</p>
-        )}
+        {!loading && items.length === 0 && <p>No items available to update.</p>}
 
         {!loading && items.length > 0 && (
           <>
@@ -134,7 +137,11 @@ export default function UpdateItem() {
             </div>
 
             {selectedName && (
-              <form onSubmit={handleSubmit} className="form" style={{ marginTop: "1rem" }}>
+              <form
+                onSubmit={handleSubmit}
+                className="form"
+                style={{ marginTop: "1rem" }}
+              >
                 <div className="form-row">
                   <label>
                     Selected item

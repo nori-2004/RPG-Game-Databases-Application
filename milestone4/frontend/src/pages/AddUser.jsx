@@ -23,12 +23,12 @@ export default function AddUser() {
     try {
       const res = await api.createUser(form);
       if (res.success) {
-        setMessage("User created successfully (mock)!");
+        setMessage(res.message || "User created successfully!");
         setForm({ username: "", first_name: "", email: "" });
       } else {
         setMessage(res.message || "Failed to create user");
       }
-    } catch (err) {
+    } catch {
       setMessage("Network or server error");
     } finally {
       setLoading(false);

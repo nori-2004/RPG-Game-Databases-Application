@@ -11,6 +11,7 @@ import Completionists from "./pages/Complitionists";
 import ItemStats from "./pages/ItemStats";
 import UserAchievements from "./pages/UserAchievements";
 import SavefileAnalysis from "./pages/SaveFileAnalysis";
+import CharacterSearch from "./pages/CharacterSearch";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("AddUser");
@@ -35,23 +36,25 @@ function App() {
     case "Active Users":
       pageComponent = <ActiveUsers />;
       break;
-    case "Completionists": 
-      pageComponent= <Completionists />; 
+    case "Completionists":
+      pageComponent = <Completionists />;
       break;
-    case "Item Stats": 
-      pageComponent= <ItemStats /> 
+    case "Item Stats":
+      pageComponent = <ItemStats />;
       break;
-    case "Achievements": 
-      pageComponent = <UserAchievements /> 
-      break; 
-    case "Save File Analysis": 
-      pageComponent = <SavefileAnalysis /> 
+    case "Achievements":
+      pageComponent = <UserAchievements />;
+      break;
+    case "Save File Analysis":
+      pageComponent = <SavefileAnalysis />;
+      break;
+    case "Character Search":
+      pageComponent = <CharacterSearch />;
       break;
     case "Add User":
     default:
       pageComponent = <AddUser />;
   }
-
 
   return (
     <Layout currentPage={currentPage} onNavigate={handleNavigate}>

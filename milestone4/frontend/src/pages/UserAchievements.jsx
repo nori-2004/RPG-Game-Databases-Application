@@ -10,7 +10,6 @@ export default function UserAchievements() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-
   useEffect(() => {
     async function loadUsers() {
       setLoadingUsers(true);
@@ -52,8 +51,7 @@ export default function UserAchievements() {
         setAchievements(res.data);
       } else {
         setMessage(
-          res.message ||
-            `No achievements found for user "${selectedUser}".`
+          res.message || `No achievements found for user "${selectedUser}".`
         );
       }
     } catch (err) {
@@ -117,16 +115,16 @@ export default function UserAchievements() {
                   <th>Achievement</th>
                   <th>Objective</th>
                   <th>Location</th>
-                  <th>Completed on</th>
+                  <th>Date Earned</th>
                 </tr>
               </thead>
               <tbody>
                 {achievements.map((a, idx) => (
                   <tr key={`${a.username}-${a.achievement_name}-${idx}`}>
                     <td>{a.achievement_name}</td>
-                    <td>{a.objective_name}</td>
+                    <td>{a.obj_name}</td>
                     <td>{a.location_name}</td>
-                    <td>{a.completed_on}</td>
+                    <td>{a.date_earned || "Not earned yet"}</td>
                   </tr>
                 ))}
               </tbody>
