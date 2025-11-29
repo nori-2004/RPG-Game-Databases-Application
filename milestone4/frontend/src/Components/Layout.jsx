@@ -3,6 +3,7 @@ import React from "react";
 export default function Layout({ children, currentPage, onNavigate }) {
   const pages = [
     "Add User",
+    "Add Save File",
     "Delete User",
     "Update Item",
     "Character Search",

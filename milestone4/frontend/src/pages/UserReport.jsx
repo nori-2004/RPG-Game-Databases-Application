@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import LoadingSpinner from "../Components/LoadingSpinner";
 import { api } from "../services/api";
 
 export default function UserReport() {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Track which columns user wants to project
   const [columns, setColumns] = useState({
     username: true,
     first_name: true,
@@ -14,28 +15,8 @@ export default function UserReport() {
     created_on: false,
   });
 
-  useEffect(() => {
-    async function loadUsers() {
-      setLoading(true);
-      setMessage("");
-
-      try {
-        const res = await api.getUsers();
-        if (res.success && res.data && res.data.length > 0) {
-          setUsers(res.data);
-        } else {
-          setUsers([]);
-          setMessage(res.message || "No users found");
-        }
-      } catch (err) {
-        setMessage("Network or server error while loading users");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadUsers();
-  }, []);
+  // Track which columns were actually fetched from DB
+  const [fetchedColumns, setFetchedColumns] = useState([]);
 
   function toggleColumn(name) {
     setColumns((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -59,16 +40,55 @@ export default function UserReport() {
     });
   }
 
+  async function handleRunQuery() {
+    const selectedFields = Object.entries(columns)
+      .filter(([, selected]) => selected)
+      .map(([field]) => field);
+
+    if (selectedFields.length === 0) {
+      setMessage("Please select at least one column.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+    setUsers([]);
+    setFetchedColumns([]);
+
+    try {
+      const res = await api.getUserReport(selectedFields);
+      if (res.success && res.data && res.data.length > 0) {
+        setUsers(res.data);
+        setFetchedColumns(res.fields || selectedFields);
+      } else {
+        setUsers([]);
+        setMessage(res.message || "No users found");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Network or server error while loading users");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const anyColumnSelected = Object.values(columns).some(Boolean);
+
+  const columnLabels = {
+    username: "Username",
+    first_name: "First name",
+    email: "Email",
+    created_on: "Created on",
+  };
 
   return (
     <div className="page">
-      <h1 className="page-title">User Report</h1>
+      <h1 className="page-title">User Report (Projection)</h1>
 
       <div className="card">
         <p className="page-subtitle">
-          Choose which user attributes to include in the report. The table will
-          update to show only the selected columns.
+          Select which attributes to include in the report. Only the selected
+          columns will be fetched from the database (server-side projection).
         </p>
 
         {/* Column chooser */}
@@ -118,43 +138,60 @@ export default function UserReport() {
           </div>
 
           <div className="column-toggle-buttons">
-            <button type="button" className="small-button-secondary" onClick={handleSelectAll}>
+            <button
+              type="button"
+              className="small-button-secondary"
+              onClick={handleSelectAll}
+            >
               Select all
             </button>
-            <button type="button" className="small-button-secondary" onClick={handleClear}>
+            <button
+              type="button"
+              className="small-button-secondary"
+              onClick={handleClear}
+            >
               Clear
             </button>
           </div>
+        </div>
+
+        {/* Run Query button */}
+        <div style={{ marginTop: "1rem" }}>
+          <button
+            type="button"
+            onClick={handleRunQuery}
+            disabled={loading || !anyColumnSelected}
+          >
+            {loading ? "Loading..." : "Run Projection Query"}
+          </button>
         </div>
 
         {loading && <LoadingSpinner />}
 
         {message && <p className="form-message">{message}</p>}
 
-        {!loading && users.length > 0 && !anyColumnSelected && (
+        {!loading && !anyColumnSelected && (
           <p style={{ marginTop: "0.75rem" }}>
             Select at least one column to view the report.
           </p>
         )}
 
-        {!loading && users.length > 0 && anyColumnSelected && (
-          <div className="table-wrapper">
+        {!loading && users.length > 0 && fetchedColumns.length > 0 && (
+          <div className="table-wrapper" style={{ marginTop: "1rem" }}>
             <table className="table">
               <thead>
                 <tr>
-                  {columns.username && <th>Username</th>}
-                  {columns.first_name && <th>First name</th>}
-                  {columns.email && <th>Email</th>}
-                  {columns.created_on && <th>Created on</th>}
+                  {fetchedColumns.map((col) => (
+                    <th key={col}>{columnLabels[col] || col}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u.username}>
-                    {columns.username && <td>{u.username}</td>}
-                    {columns.first_name && <td>{u.first_name}</td>}
-                    {columns.email && <td>{u.email}</td>}
-                    {columns.created_on && <td>{u.created_on}</td>}
+                {users.map((u, idx) => (
+                  <tr key={u.username || idx}>
+                    {fetchedColumns.map((col) => (
+                      <td key={col}>{u[col]}</td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -162,7 +199,7 @@ export default function UserReport() {
           </div>
         )}
 
-        {!loading && users.length === 0 && !message && (
+        {!loading && users.length === 0 && fetchedColumns.length > 0 && (
           <p>No users found.</p>
         )}
       </div>

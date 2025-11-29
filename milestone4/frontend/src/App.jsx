@@ -3,6 +3,7 @@ import Layout from "./Components/Layout";
 import Notification from "./Components/Notification";
 
 import AddUser from "./pages/AddUser";
+import AddSaveFile from "./pages/AddSaveFile";
 import DeleteUser from "./pages/DeleteUser";
 import UpdateItem from "./pages/UpdateItem";
 import UserReport from "./pages/UserReport";
@@ -50,6 +51,9 @@ function App() {
       break;
     case "Character Search":
       pageComponent = <CharacterSearch />;
+      break;
+    case "Add Save File":
+      pageComponent = <AddSaveFile />;
       break;
     case "Add User":
     default:
